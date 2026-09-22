@@ -1,0 +1,1567 @@
+@page "/"
+
+@rendermode InteractiveServer
+
+@using Syncfusion.Blazor.Diagram
+@using System.Collections.ObjectModel
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Popups
+@using NodeShape = Syncfusion.Blazor.Diagram.NodeShapes
+@using SelectionChangedEventArgs = Syncfusion.Blazor.Diagram.SelectionChangedEventArgs
+
+
+@*End:Hidden*@
+
+@*Hidden:Lines*@
+<style>
+/* ::-webkit-scrollbar {
+    display: none;
+} */
+
+html, body {
+    overflow: hidden;
+    height: 100%;
+}
+
+.row {
+    height: 100vh;
+}
+
+.col-lg-9, .col-lg-3 {
+    height: 100%;
+    overflow: hidden;
+}
+
+.property-panel {
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #dcdcdc;
+    border-radius: 4px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.panel-header {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.property-table {
+    width: 100%;
+}
+
+.property-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.property-label {
+    width: 40%;
+    font-size: 13px;
+    color: #333;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.property-editor {
+    width: 60%;
+    flex-grow: 1;
+}
+
+.property-editor .e-control,
+.property-editor .e-numerictextbox,
+.property-editor .e-dropdownlist,
+.property-editor input,
+.property-editor select {
+    width: 100% !important;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 20px 0 15px;
+}
+
+.section-heading {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin: 15px 0 10px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.toolbar-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.toolbar-buttons .e-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hyperlink-btn {
+    width: 120px;
+}
+
+.divider {
+    border-top: 1px solid #dcdcdc;
+    margin: 15px 0;
+}
+</style>
+<div class="row">
+
+    <div class="col-lg-9">
+
+        <SfDiagramComponent @ref="Diagram"
+                            Width="100%"
+                            Height="900px"
+                            Nodes="@Nodes"
+                            Connectors="@Connectors">
+                  <!-- 1. Keyboard Shortcuts & Custom Commands -->
+    <CommandManager>
+        <CommandManager Commands="@_commands"
+                        Execute="@CommandExecute"
+                        CanExecute="@CanExecute">
+        </CommandManager>
+    </CommandManager>
+
+            <ScrollSettings ScrollLimit="@scrollLimit" ScrollableArea="@scrollableArea">
+                    </ScrollSettings>
+                     <PageSettings MultiplePage="true" Width="@DiagramPageWidth" Height="@DiagramPageHeight" Orientation="@orientation" ShowPageBreaks="@DisplayPageBreaks">
+                <BackgroundStyle Background="white"></BackgroundStyle>
+                <PageMargin Left="@MarginLeft" Right="@MarginRight" Top="@MarginTop" Bottom="@MarginBottom"></PageMargin>
+            </PageSettings>
+        </SfDiagramComponent>
+
+    </div>
+
+    <div class="col-lg-3">
+
+        <div class="property-panel">
+
+            <h5 class="section-heading">Annotation Properties</h5>
+
+            <!-- Appearance -->
+
+            <div class="property-section">
+
+                <div class="property-row">
+                    <div class="property-label">Font Size</div>
+                    <div class="property-editor">
+                        <SfNumericTextBox TValue="int"
+                                          @bind-Value="FontSizeValue">
+
+                            <NumericTextBoxEvents TValue="int"
+                                                  ValueChange="ChangeFontSize">
+                            </NumericTextBoxEvents>
+
+                        </SfNumericTextBox>
+                    </div>
+                </div>
+
+                <div class="property-row">
+                    <div class="property-label">Font Family</div>
+                    <div class="property-editor">
+                        <SfDropDownList TValue="string"
+                                        TItem="FontFamily"
+                                        DataSource="@FontFamilyLists"
+                                        @bind-Value="FontStyle">
+
+                            <DropDownListEvents TValue="string"
+                                                TItem="FontFamily"
+                                                ValueChange="ChangeFontFamily">
+                            </DropDownListEvents>
+
+                            <DropDownListFieldSettings
+                                Text="Name"
+                                Value="Name">
+                            </DropDownListFieldSettings>
+
+                        </SfDropDownList>
+                    </div>
+                </div>
+
+                <div class="property-row">
+                    <div class="property-label">Text Wrapping</div>
+                    <div class="property-editor">
+                        <SfDropDownList TValue="string"
+                                        TItem="TextWrapping"
+                                        DataSource="@TextWrappingList"
+                                        @bind-Value="TextWrappingOption">
+
+                            <DropDownListEvents TValue="string"
+                                                TItem="TextWrapping"
+                                                ValueChange="ChangeTextWrapping">
+                            </DropDownListEvents>
+
+                            <DropDownListFieldSettings
+                                Text="Name"
+                                Value="Name">
+                            </DropDownListFieldSettings>
+
+                        </SfDropDownList>
+                    </div>
+                </div>
+
+                <div class="property-row">
+                    <div class="property-label">Text Overflow</div>
+                    <div class="property-editor">
+                        <SfDropDownList TValue="string"
+                                        TItem="TextOverFlow"
+                                        DataSource="@TextOverFlowList"
+                                        @bind-Value="TextOverflowOption">
+
+                            <DropDownListEvents TValue="string"
+                                                TItem="TextOverFlow"
+                                                ValueChange="ChangeTextOverflow">
+                            </DropDownListEvents>
+
+                            <DropDownListFieldSettings
+                                Text="Name"
+                                Value="Name">
+                            </DropDownListFieldSettings>
+
+                        </SfDropDownList>
+                    </div>
+                </div>
+
+                <div class="property-row">
+                    <div class="property-label">Font Color</div>
+                    <div class="property-editor">
+                        <SfColorPicker @bind-Value="FillColor"
+                                       ValueChange="OnFillColorChange">
+                        </SfColorPicker>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="divider"></div>
+            <h5 class="section-heading">Scroll Properties</h5>
+            <div class="property-row">
+                <div class="property-label">Scroll Limit</div>
+                <div class="property-editor">
+                    <SfDropDownList TValue="string" TItem="Games" Placeholder="Diagram" @bind-Value="@scrollValue" DataSource="@LocalData" Width="100%">
+                        <DropDownListFieldSettings Value="ID" Text="Text"></DropDownListFieldSettings>
+                        <DropDownListEvents TValue="string" TItem="Games" ValueChange="OnScrollLimitChange"></DropDownListEvents>
+                    </SfDropDownList>
+                </div>
+            </div>
+            <div Enabled="@clipBounds">
+                <div class="section-heading" style="margin-top: 15px;">Scrollable Area</div>
+                <div class="property-row">
+                    <div class="property-label">X</div>
+                    <div class="property-editor">
+                        <SfNumericTextBox TValue="double" Value="@x" Enabled="@clipBounds" Format="n0" Decimals=0 Min=0 Max="2000" Step=5 Width="100%">
+                            <NumericTextBoxEvents TValue="double" ValueChange="xvalueChanged" />
+                        </SfNumericTextBox>
+                    </div>
+                </div>
+                <div class="property-row">
+                    <div class="property-label">Y</div>
+                    <div class="property-editor">
+                        <SfNumericTextBox TValue="double" Value="@y" Format="n0" Decimals=0 Enabled="@clipBounds" Min=0 Max="2000" Step=5 Width="100%">
+                            <NumericTextBoxEvents TValue="double" ValueChange="yvalueChanged" />
+                        </SfNumericTextBox>
+                    </div>
+                </div>
+                <div class="property-row">
+                    <div class="property-label">Width</div>
+                    <div class="property-editor">
+                        <SfNumericTextBox TValue="double" Value="@PageWidth" Format="n0" Decimals=0 Enabled="@clipBounds" Min=0 Max="2000" Step=5 Width="100%">
+                            <NumericTextBoxEvents TValue="double" ValueChange="widthvalueChanged" />
+                        </SfNumericTextBox>
+                    </div>
+                </div>
+                <div class="property-row">
+                    <div class="property-label">Height</div>
+                    <div class="property-editor">
+                        <SfNumericTextBox TValue="double" Value="@PageHeight" Format="n0" Decimals=0 Enabled="@clipBounds" Min=0 Max="2000" Step=5 Width="100%">
+                            <NumericTextBoxEvents TValue="double" ValueChange="heightvalueChanged" />
+                        </SfNumericTextBox>
+                    </div>
+                </div>
+        
+            <div class="divider"></div>
+            <h5 class="section-heading">Export Properties</h5>
+
+            <div class="property-row">
+                <div class="property-label">File Format</div>
+                <div class="property-editor">
+                    <SfDropDownList TValue="@string" @bind-Enabled="IsFileEnabled" TItem="@FileFomatItem" @bind-Value="@SelectedFileFormat" ID="fileformat" PopupHeight="120" PopupWidth="150" CssClass="textboxstyle" DataSource="@FileFomatLists">
+                        <DropDownListEvents TItem="FileFomatItem" TValue="string" ValueChange="@FileFormateChange"></DropDownListEvents>
+                        <DropDownListFieldSettings Text="Name" Value="Name"></DropDownListFieldSettings>
+                    </SfDropDownList>
+                </div>
+            </div>
+            <div class="property-row">
+                <div class="property-label">Export Mode</div>
+                <div class="property-editor">
+                    <SfDropDownList TValue="@string" TItem="@ExportMode" @bind-Value="@SelectedExportMode" ID="position" PopupHeight="120" PopupWidth="150" CssClass="textboxstyle" DataSource="@ExportModeLists">
+                        <DropDownListEvents TItem="ExportMode" TValue="string" ValueChange="@ExportModeChange"></DropDownListEvents>
+                        <DropDownListFieldSettings Text="Name" Value="Name"></DropDownListFieldSettings>
+                    </SfDropDownList>
+                </div>
+            </div>
+            <div class="property-row">
+                <div class="property-label">Page Type</div>
+                <div class="property-editor">
+                    <div style="display: flex; gap: 15px; flex-direction: column;">
+                        <div>
+                            <SfRadioButton Label="MultiplePage" Name="options" Value="multiple" Checked="@SelectedPageOption" @onclick="@OnMultiplePage"></SfRadioButton>
+                        </div>
+                        <div>
+                            <SfRadioButton Label="SinglePage" Name="options" Value="single" Checked="@SelectedPageOption" @onclick="@OnSinglePage"></SfRadioButton>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-heading" style="margin-top: 15px;">Clip</div>
+            <div class="property-row">
+                <div class="property-label">X</div>
+                <div class="property-editor">
+                    <SfNumericTextBox TValue="double" @bind-Value="ClipX" Min="0" Max="2000" Width="100%" Enabled="@IsClipBoundsEnabled" CssClass="e-corner" />
+                </div>
+            </div>
+            <div class="property-row">
+                <div class="property-label">Y</div>
+                <div class="property-editor">
+                    <SfNumericTextBox TValue="double" @bind-Value="ClipY" Min="0" Max="2000" Width="100%" Enabled="@IsClipBoundsEnabled" CssClass="e-corner" />
+                </div>
+            </div>
+            <div class="property-row">
+                <div class="property-label">Width</div>
+                <div class="property-editor">
+                    <SfNumericTextBox TValue="double" @bind-Value="ClipWidth" Min="0" Max="2000" Width="100%" Enabled="@IsClipBoundsEnabled" CssClass="e-corner" />
+                </div>
+            </div>
+            <div class="property-row">
+                <div class="property-label">Height</div>
+                <div class="property-editor">
+                    <SfNumericTextBox TValue="double" @bind-Value="ClipHeight" Min="0" Max="2000" Width="100%" Enabled="@IsClipBoundsEnabled" CssClass="e-corner" />
+                </div>
+            </div>
+            <div class="property-row" style="margin-top: 15px;">
+                <div class="property-label"></div>
+                <div class="property-editor">
+                    <SfButton OnClick="@OnExport" CssClass="e-custom">Export</SfButton>
+                </div>
+            </div>
+
+    </div>
+        </div>
+        </div>
+</div>
+@*End:Hidden*@
+@code
+{
+    @*Hidden:Lines*@ 
+private bool IsBoldDisabled { get; set; } = false;
+public string SelectedNode { get; set; } = "";
+public string SelectedConnector { get; set; } = "none";
+public bool IsItalic { get; set; } = false;
+public bool IsUnderline { get; set; } = false;
+public bool IsFontFamilyEnabled { get; set; } = true;
+public bool IsTextWrappingEnabled { get; set; } = true;
+public bool IsTextOverflowEnabled { get; set; } = true;
+public bool IsFontEnabled { get; set; } = true;
+public bool IsColorPickerEnabled { get; set; } = false;
+public string SelectedPanel { get; set; } = "center";
+private bool IsPanelUpdateOnly { get; set; } = false;
+public string AppearanceClass { get; set; } = "e-remove-selection";
+private const string SelectedItemClass = "image-pattern-style e-selected-style";
+public int FontSizeValue { get; set; } = 12;
+public string FillColor { get; set; } = "#000";
+public string TextWrappingOption { get; set; } = "NoWrap";
+public string FontStyle { get; set; } = "Arial";
+public string TextOverflowOption { get; set; } = "Wrap";
+private const string UnselectedItemClass = "image-pattern-style";
+
+public string StyleValue { get; set; } = "background-color:#008000";
+
+// Annotation Interaction 
+public bool IsAllowDrag { get; set; } = false;
+public bool IsAllowResize { get; set; } = false;
+public bool IsAllowRotate { get; set; } = false;
+public bool IsAllowAll { get; set; } = false;
+
+// Hyperlink
+    SfDialog? TextHyperLink;
+    private bool InsertLinkVisible { get; set; } = false;
+    private string? ValueLink { get; set; }
+    private string? ValueText { get; set; }
+    private bool IsApplyEnabled => !string.IsNullOrWhiteSpace(ValueLink);
+    private string SelectedOpenModeOption { get; set; } = "Self";
+    private string Self { get; set; } = "Self";
+    private string Blank { get; set; } = "Blank";
+    private bool IsHyperlinkEnabled { get; set; } = false;
+
+// Define bold, italic, underline button
+public SfButton? BoldButton { get; set; }
+public SfButton? ItalicButton { get; set; }
+public SfButton? UnderlineButton { get; set; }
+public SfNumericTextBox<int>? FontSizeBox { get; set; }
+
+    //Define selected item/unselected item AlignmentOptions
+    Dictionary<string, string> AlignmentOptions = new Dictionary<string, string>() { { "left", UnselectedItemClass }, { "centertext", UnselectedItemClass }, { "belowcenter", UnselectedItemClass }, { "abovecenter", UnselectedItemClass }, { "targettext", UnselectedItemClass }, { "sourcetext", UnselectedItemClass }, { "right", UnselectedItemClass }, { "center", UnselectedItemClass }, { "bottomr", UnselectedItemClass }, { "bottoml", UnselectedItemClass }, { "bottomcenter_top", UnselectedItemClass } };
+
+    @*End:Hidden*@
+
+    public DiagramConstraints Constraints { get; set; }
+
+    //Defines diagrams's nodes collection
+    public DiagramObjectCollection<Node>? DiagramNodes = new DiagramObjectCollection<Node>();
+
+    //Defines diagrams's connectors collection
+    public DiagramObjectCollection<Connector>? DiagramConnectors = new DiagramObjectCollection<Connector>();
+
+    private void OnCreated()
+    {
+        Diagram?.Select(new ObservableCollection<IDiagramObject>() { Diagram.Nodes![2] });
+        FitOptions options = new FitOptions() { Mode = FitMode.Both, Region = DiagramRegion.Content };
+    }
+
+   private SfDiagramComponent Diagram;
+
+    public DiagramObjectCollection<Node> Nodes { get; set; } = new();
+    public DiagramObjectCollection<Connector> Connectors { get; set; } = new();
+    public DiagramObjectCollection<KeyboardCommand> Commands { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        CreateNodes();
+        CreateConnectors();
+        CreateCommands();
+    }
+
+    private void CreateCommands()
+    {
+        Commands = new DiagramObjectCollection<KeyboardCommand>()
+        {
+            new KeyboardCommand()
+            {
+                Name = "CustomCommand",
+                Gesture = new KeyGesture()
+                {
+                    Key = DiagramKeys.G,
+                    Modifiers = ModifierKeys.Control
+                }
+            }
+        };
+    }
+
+    private void CreateNodes()
+    {
+        Dictionary<string, object> annotationInfo = new Dictionary<string, object>();
+        annotationInfo.Add("Author", "Workflow Designer");
+        annotationInfo.Add("ModifiedDate", DateTime.Now.ToShortDateString());
+
+        Nodes = new DiagramObjectCollection<Node>()
+        {
+            // Start
+            new Node()
+            {
+                ID = "Start",
+                OffsetX = 400,
+                OffsetY = 100,
+                Width = 120,
+                Height = 50,
+                AdditionalInfo = annotationInfo,
+                Shape = new FlowShape()
+                {
+                    Type = NodeShapes.Flow,
+                    Shape = NodeFlowShapes.Terminator
+                },
+                Tooltip = new DiagramTooltip()
+                {
+                    Content = "Workflow starting point"
+                },
+                Annotations = new DiagramObjectCollection<ShapeAnnotation>()
+                {
+                    new ShapeAnnotation() { Content = "Start" }
+                }
+            },
+
+            // Input
+            new Node()
+            {
+                ID = "Input",
+                OffsetX = 400,
+                OffsetY = 200,
+                Width = 150,
+                Height = 60,
+                 Shape = new BasicShape()
+                {
+                    Type = NodeShapes.Basic,
+                    Shape = NodeBasicShapes.Rectangle
+                },
+                Annotations = new DiagramObjectCollection<ShapeAnnotation>()
+                {
+                    new ShapeAnnotation()
+                    {
+                        Content = "This node demonstrates text wrapping and overflow handling in diagram annotations."
+                    }
+                }
+            },
+
+            // Process
+            new Node()
+            {
+                ID = "Process",
+                OffsetX = 400,
+                OffsetY = 320,
+                Width = 150,
+                Height = 60,
+                Shape = new FlowShape()
+                {
+                    Type = NodeShapes.Flow,
+                    Shape = NodeFlowShapes.Process
+                },
+                Annotations = new DiagramObjectCollection<ShapeAnnotation>()
+                {
+                    new ShapeAnnotation()
+                    {
+                        Content = "Process Data"
+                    }
+                }
+            },
+
+            // Decision
+            new Node()
+            {
+                ID = "Decision",
+                OffsetX = 400,
+                OffsetY = 450,
+                Width = 120,
+                Height = 80,
+                Shape = new FlowShape()
+                {
+                    Type = NodeShapes.Flow,
+                    Shape = NodeFlowShapes.Decision
+                },
+                Annotations = new DiagramObjectCollection<ShapeAnnotation>()
+                {
+                    new ShapeAnnotation()
+                    {
+                        Content = "Valid?"
+                    }
+                }
+            },
+
+            // Save Data
+            new Node()
+            {
+                ID = "Save",
+                OffsetX = 650,
+                OffsetY = 450,
+                Width = 150,
+                Height = 60,
+                Shape = new FlowShape()
+                {
+                    Type = NodeShapes.Flow,
+                    Shape = NodeFlowShapes.Process
+                },
+                Tooltip = new DiagramTooltip()
+                {
+                    Content = "Stores processed data"
+                },
+                 Annotations = new DiagramObjectCollection<ShapeAnnotation>()
+                {
+                    new ShapeAnnotation()
+                    {
+                        Hyperlink = new HyperlinkSettings()
+                        {
+                            Url = "https://help.syncfusion.com/",
+                            Content = "View Docs",
+                            OpenMode = HyperlinkOpenMode.Blank
+                        }
+                    }
+                }
+            },
+
+            
+             
+            // End
+            new Node()
+            {
+                ID = "End",
+                OffsetX = 650,
+                OffsetY = 600,
+                Width = 120,
+                Height = 50,
+                Shape = new FlowShape()
+                {
+                    Type = NodeShapes.Flow,
+                    Shape = NodeFlowShapes.Terminator
+                },
+                Annotations = new DiagramObjectCollection<ShapeAnnotation>()
+                {
+                    new ShapeAnnotation()
+                    {
+                        Content = "End"
+                    }
+                }
+            }
+        };
+    }
+
+    private void CreateConnectors()
+    {
+        Connectors = new DiagramObjectCollection<Connector>()
+        {
+            new Connector()
+            {
+                ID = "C1",
+                SourceID = "Start",
+                TargetID = "Input",
+                Type = ConnectorSegmentType.Orthogonal
+            },
+
+            new Connector()
+            {
+                ID = "C2",
+                SourceID = "Input",
+                TargetID = "Process",
+                Type = ConnectorSegmentType.Orthogonal
+            },
+
+            new Connector()
+            {
+                ID = "C3",
+                SourceID = "Process",
+                TargetID = "Decision",
+                Type = ConnectorSegmentType.Orthogonal
+            },
+
+            new Connector()
+            {
+                ID = "C4",
+                SourceID = "Decision",
+                TargetID = "Save",
+                Type = ConnectorSegmentType.Orthogonal,
+                Annotations = new DiagramObjectCollection<PathAnnotation>()
+                {
+                    new PathAnnotation()
+                    {
+                        Content = "Yes"
+                    }
+                }
+            },
+
+            new Connector()
+            {
+                ID = "C5",
+                SourceID = "Save",
+                TargetID = "End",
+                Type = ConnectorSegmentType.Orthogonal
+            }
+        };
+    }
+
+    private async Task ExportDiagram()
+    {
+        DiagramExportSettings exportSettings = new DiagramExportSettings()
+        {
+            Region = DiagramPrintExportRegion.PageSettings,
+            PageWidth = 816,
+            PageHeight = 1054,
+            // false = export across multiple pages
+            FitToPage = false,
+            Margin = new DiagramThickness() { Left = 10, Top = 10, Right = 10, Bottom = 10 }
+        };
+
+        await Diagram.ExportAsync("DiagramExport", DiagramExportFormat.PNG, exportSettings);
+    }
+    //Update annotation bold property
+    private void ApplyFontBold()
+    {
+        UpdateAnnotation("bold", true);
+    }
+
+    //Update annotation italic property
+    private void ApplyFontItalic()
+    {
+        UpdateAnnotation("italic", true);
+    }
+
+    //Update annotation underline property
+    private void ApplyFontUnderline()
+    {
+        UpdateAnnotation("underline", true);
+    }
+
+    //Update annotation fontfamily
+    private void ChangeFontFamily(ChangeEventArgs<string, FontFamily> args)
+    {
+        UpdateAnnotation("fontfamily", args.Value!);
+    }
+
+    //Update annotation textwrap property
+    private void ChangeTextWrapping(ChangeEventArgs<string, TextWrapping> args)
+    {
+        UpdateAnnotation("textwrapping", args.Value!);
+    }
+
+    //Update annotation textoverflow property
+    private void ChangeTextOverflow(ChangeEventArgs<string, TextOverFlow> args)
+    {
+        UpdateAnnotation("textoverflow", args.Value!);
+    }
+    //Update annotation fontsize value
+    private void ChangeFontSize(Syncfusion.Blazor.Inputs.ChangeEventArgs<int> args)
+    {
+        FontSizeValue = int.Parse(args.Value.ToString());
+        UpdateAnnotation("fontsize", FontSizeValue);
+    }
+    private void SelectionChanged(SelectionChangedEventArgs args)
+    {
+        if (args.NewValue?.Count > 0)
+        {
+            if (args.NewValue[0] is Node)
+            {
+                SelectedNode = "";
+                SelectedConnector = "none";
+                ShapeAnnotation? shapeAnnotation = (args.NewValue[0] as Node)?.Annotations?[0];
+                HorizontalAlignment? horizontalAlignment = shapeAnnotation?.HorizontalAlignment;
+                VerticalAlignment? verticalAlignment = shapeAnnotation!.VerticalAlignment;
+                if (horizontalAlignment == HorizontalAlignment.Center && verticalAlignment == VerticalAlignment.Center)
+                {
+                    UpdateSelection("center");
+                }
+                else if (horizontalAlignment == HorizontalAlignment.Left && verticalAlignment == VerticalAlignment.Top)
+                {
+                    UpdateSelection("bottomr");
+                }
+                else if (horizontalAlignment == HorizontalAlignment.Right && verticalAlignment == VerticalAlignment.Top)
+                {
+                    UpdateSelection("bottoml");
+                }
+                else if (horizontalAlignment == HorizontalAlignment.Left && verticalAlignment == VerticalAlignment.Bottom)
+                {
+                    UpdateSelection("right");
+                }
+                else if (horizontalAlignment == HorizontalAlignment.Right && verticalAlignment == VerticalAlignment.Bottom)
+                {
+                    UpdateSelection("left");
+                }
+                else if (horizontalAlignment == HorizontalAlignment.Center && verticalAlignment == VerticalAlignment.Bottom)
+                {
+                    UpdateSelection("bottomcenter_top");
+                }
+                if (shapeAnnotation.Style?.Color == "black")
+                {
+                    shapeAnnotation.Style.Color = "#000";
+                }
+
+                
+
+                FillColor = shapeAnnotation.Style!.Color!;
+                TextWrappingOption = shapeAnnotation.Style!.TextWrapping.ToString();
+                TextOverflowOption = shapeAnnotation.Style.TextOverflow.ToString();
+                FontStyle = shapeAnnotation.Style.FontFamily!;
+                FontSizeValue = ((int)shapeAnnotation.Style.FontSize);
+            }
+            if (args.NewValue[0] is Connector)
+            {
+                SelectedConnector = "";
+                SelectedNode = "none";
+                PathAnnotation pathAnnotation = (args.NewValue[0] as Connector)!.Annotations![0];
+                if (pathAnnotation.Offset == 0)
+                {
+                    UpdateSelection("sourcetext");
+                }
+                else if (pathAnnotation.Offset == 1)
+                {
+                    UpdateSelection("targettext");
+                }
+                else if (pathAnnotation.Offset == 0.5 && pathAnnotation.Alignment == AnnotationAlignment.After)
+                {
+                    UpdateSelection("abovecenter");
+                }
+                else if (pathAnnotation.Offset == 0.5 && pathAnnotation.Alignment == AnnotationAlignment.Before)
+                {
+                    UpdateSelection("belowcenter");
+                }
+                else if (pathAnnotation.Offset == 0.5 && pathAnnotation.Alignment == AnnotationAlignment.Center)
+                {
+                    UpdateSelection("centertext");
+                }
+                if (pathAnnotation.Style!.Color == "black")
+                {
+                    pathAnnotation.Style.Color = "#000";
+                }
+
+                
+
+                FillColor = pathAnnotation.Style.Color!;
+                TextWrappingOption = pathAnnotation.Style.TextWrapping.ToString();
+                TextOverflowOption = pathAnnotation.Style.TextOverflow.ToString();
+                FontStyle = pathAnnotation.Style.FontFamily!;
+                FontSizeValue = ((int)pathAnnotation.Style.FontSize);
+            }
+        }
+        if (args.NewValue != null && args.NewValue.Count > 0)
+        {
+            AlignmentOptions[SelectedPanel] = SelectedItemClass;
+            if (args.NewValue[0] is Node)
+            {
+                SelectedNode = "";
+                SelectedConnector = "none";
+            }
+            else if (args.NewValue[0] is Connector)
+            {
+                SelectedNode = "none";
+                SelectedConnector = "";
+            }
+        }
+        else
+        {
+            AlignmentOptions = new Dictionary<string, string>() { { "left", UnselectedItemClass }, { "centertext", UnselectedItemClass }, { "belowcenter", UnselectedItemClass }, { "abovecenter", UnselectedItemClass }, { "targettext", UnselectedItemClass }, { "sourcetext", UnselectedItemClass }, { "right", UnselectedItemClass }, { "center", UnselectedItemClass }, { "bottomr", UnselectedItemClass }, { "bottoml", UnselectedItemClass }, { "bottomcenter_top", UnselectedItemClass } };
+            SelectedNode = "none";
+            SelectedConnector = "none";
+        }
+        if (Diagram!.SelectionSettings!.Nodes!.Count > 0 || Diagram.SelectionSettings.Connectors!.Count > 0)
+        {
+            IsBoldDisabled = false;
+            IsItalic = false;
+            IsUnderline = false;
+            IsFontFamilyEnabled = true;
+            IsTextOverflowEnabled = true;
+            IsTextWrappingEnabled = true;
+            IsColorPickerEnabled = false;
+            IsFontEnabled = true;
+            IsHyperlinkEnabled = false;
+        }
+        else
+        {
+            IsBoldDisabled = true;
+            IsItalic = true;
+            IsUnderline = true;
+            IsFontFamilyEnabled = false;
+            IsTextOverflowEnabled = false;
+            IsTextWrappingEnabled = false;
+            IsColorPickerEnabled = true;
+            IsFontEnabled = false;
+            IsHyperlinkEnabled = true;
+        }
+    }
+
+    //Update fill color for annotations
+    public void OnFillColorChange(ColorPickerEventArgs args)
+    {
+        this.StyleValue  = "background-color:" + args.CurrentValue!.Hex;
+        UpdateAnnotation("fontcolor", args.CurrentValue.Hex!);
+    }
+
+    //Update annotation
+    private void UpdateAnnotation(string name, object value)
+    {
+        if (Diagram!.SelectionSettings!.Connectors!.Count > 0)
+        {
+            for (var i = 0; i < Diagram.SelectionSettings.Connectors.Count; i++)
+            {
+                var connector = Diagram.SelectionSettings.Connectors[i];
+                for (var j = 0; j < connector.Annotations!.Count; j++)
+                {
+                    TextStyle annotationStyle = connector.Annotations[j].Style!;
+                    UpdateAnnotationStyle(name, annotationStyle, value);
+
+                }
+            }
+        }
+        if (Diagram.SelectionSettings.Nodes!.Count > 0)
+        {
+            for (var i = 0; i < Diagram.SelectionSettings.Nodes.Count; i++)
+            {
+                var node = Diagram.SelectionSettings.Nodes[i];
+                for (var j = 0; j < node.Annotations!.Count; j++)
+                {
+                    TextStyle annotationStyle = node.Annotations[j].Style!;
+                    UpdateAnnotationStyle(name, annotationStyle, value);
+                }
+            }
+        }
+    }
+
+    //Update annotation style
+    private void UpdateAnnotationStyle(string option, TextStyle textStyle, object value)
+    {
+        switch (option)
+        {
+            case "fontsize":
+                textStyle.FontSize = Double.Parse(value.ToString()!);
+                break;
+            case "underline":
+                textStyle.TextDecoration = textStyle.TextDecoration == TextDecoration.Underline ? TextDecoration.None : TextDecoration.Underline;
+                break;
+            case "fontfamily":
+                textStyle.FontFamily = value.ToString();
+                break;
+            case "bold":
+                if (textStyle.Bold)
+                    textStyle.Bold = false;
+                else
+                    textStyle.Bold = true;
+                break;
+            case "italic":
+                if (textStyle.Italic)
+                    textStyle.Italic = false;
+                else
+                    textStyle.Italic = true;
+                break;
+            case "fontcolor":
+                textStyle.Color = value.ToString();
+                break;
+            case "textwrapping":
+                string textwrap = value.ToString()!;
+                if (textwrap == "NoWrap")
+                {
+                    textStyle.TextWrapping = TextWrap.NoWrap;
+                }
+                else if (textwrap == "Wrap")
+                {
+                    textStyle.TextWrapping = TextWrap.Wrap;
+                }
+                else if (textwrap == "WrapWithOverflow")
+                {
+                    textStyle.TextWrapping = TextWrap.WrapWithOverflow;
+                }
+                break;
+            case "textoverflow":
+                string textOverFlow = value.ToString()!;
+                if (textOverFlow == "Ellipsis")
+                {
+                    textStyle.TextOverflow = TextOverflow.Ellipsis;
+                }
+                else if (textOverFlow == "Clip")
+                {
+                    textStyle.TextOverflow = TextOverflow.Clip;
+                }
+                else if (textOverFlow == "Wrap")
+                {
+                    textStyle.TextOverflow = TextOverflow.Wrap;
+                }
+                break;
+        }
+    }
+
+    //Update annotation position
+    private void UpdatePosition(string id)
+    {
+        for (int i = 0; i < Diagram!.SelectionSettings!.Nodes!.Count; i++)
+        {
+            Node node = Diagram.SelectionSettings.Nodes[i] as Node;
+            for (int j = 0; j < node.Annotations!.Count; j++)
+            {
+                Diagram.StartGroupAction();
+                ShapeAnnotation annotation = node.Annotations[j] as ShapeAnnotation;
+                UpdateAnnotation(id, annotation);
+                Diagram.EndGroupAction();
+            }
+        }
+        for (int i = 0; i < Diagram.SelectionSettings.Connectors!.Count; i++)
+        {
+            Connector node = Diagram.SelectionSettings.Connectors[i] as Connector;
+            for (int j = 0; j < node.Annotations!.Count; j++)
+            {
+                Diagram.StartGroupAction();
+                PathAnnotation annotation = node.Annotations[j] as PathAnnotation;
+                UpdateAnnotationValue(id, annotation);
+                Diagram.EndGroupAction();
+            }
+        }
+    }
+
+    //Update path annotation
+    private void UpdateAnnotationValue(string id, PathAnnotation annotation)
+    {
+        Diagram!.BeginUpdate();
+        if (!IsPanelUpdateOnly)
+        {
+            switch (id)
+            {
+                case "sourcetext":
+                    annotation.Offset = 0;
+                    break;
+                case "targettext":
+                    annotation.Offset = 1;
+                    break;
+                case "abovecenter":
+                    annotation.Offset = 0.5;
+                    annotation.Alignment = AnnotationAlignment.After;
+                    break;
+                case "belowcenter":
+                    annotation.Offset = 0.5;
+                    annotation.Alignment = AnnotationAlignment.Before;
+                    break;
+                case "centertext":
+                    annotation.Offset = 0.5;
+                    annotation.Alignment = AnnotationAlignment.Center;
+                    break;
+            }
+        }
+        UpdateSelection(id);
+        UpateProprtyPanelValue(annotation);
+        _ = Diagram.EndUpdateAsync();
+    }
+
+    //Update pathannotation property panel value
+    private void UpateProprtyPanelValue(PathAnnotation annotation)
+    {
+        FontSizeValue = int.Parse(annotation.Style!.FontSize.ToString());
+        FontStyle = annotation.Style.FontFamily!;
+        FillColor = annotation.Style.Color!;
+    }
+
+    //Update shapeannotation alignment
+    private void UpdateAnnotation(string id, ShapeAnnotation annotation)
+    {
+        Diagram!.BeginUpdate();
+        if (!IsPanelUpdateOnly)
+        {
+            switch (id)
+            {
+                case "left":
+                    SetAnnotationPosition(annotation, 0, 0, VerticalAlignment.Top, HorizontalAlignment.Left);
+                    break;
+                case "right":
+                    SetAnnotationPosition(annotation, 1, 0, VerticalAlignment.Top, HorizontalAlignment.Right);
+                    break;
+                case "bottoml":
+                    SetAnnotationPosition(annotation, 0, 1, VerticalAlignment.Bottom, HorizontalAlignment.Left);
+                    break;
+                case "bottomr":
+                    SetAnnotationPosition(annotation, 1, 1, VerticalAlignment.Bottom, HorizontalAlignment.Right);
+                    break;
+                case "center":
+                    SetAnnotationPosition(annotation, 0.5f, 0.5f, VerticalAlignment.Center, HorizontalAlignment.Center);
+                    break;
+                case "bottomcenter_top":
+                    SetAnnotationPosition(annotation, 0.5f, 1, VerticalAlignment.Top, HorizontalAlignment.Center);
+                    break;
+            }
+        }
+        UpdateSelection(id);
+        UpateProprtyPanel(annotation);
+        _ = Diagram.EndUpdateAsync();
+    }
+
+    //Update shapeannotation property panel
+    private void UpateProprtyPanel(ShapeAnnotation annotation)
+    {
+        FontSizeValue = int.Parse(annotation.Style!.FontSize.ToString());
+        FontStyle = annotation.Style.FontFamily!;
+        FillColor = annotation.Style.Color!;
+    }
+
+    //Update selection
+    private void UpdateSelection(string id)
+    {
+        for (int i = 0; i < AlignmentOptions.Count; i++)
+        {
+            var value = AlignmentOptions.Values.ElementAt(i);
+            var key = AlignmentOptions.Keys.ElementAt(i);
+            if (AlignmentOptions.ContainsKey(id) && key == id)
+            {
+                value = SelectedItemClass;
+            }
+            else
+            {
+                value = UnselectedItemClass;
+            }
+            AlignmentOptions.Remove(key);
+            AlignmentOptions.Add(key, value);
+        }
+        AlignmentOptions[SelectedPanel] = UnselectedItemClass;
+        SelectedPanel = id;
+        AlignmentOptions[id] = SelectedItemClass;
+    }
+
+    //Set annotation position
+    private void SetAnnotationPosition(ShapeAnnotation annotation, float offsetX, float offsetY, VerticalAlignment vAlignment, HorizontalAlignment hAlignment)
+    {
+        if (annotation.Offset.X != offsetX)
+            annotation.Offset.X = offsetX;
+        if (annotation.Offset.Y != offsetY)
+            annotation.Offset.Y = offsetY;
+        annotation.VerticalAlignment = vAlignment;
+        annotation.HorizontalAlignment = hAlignment;
+        annotation.Margin = new DiagramThickness();
+        if (vAlignment == VerticalAlignment.Top && hAlignment == HorizontalAlignment.Left)
+        {
+            annotation.Margin = new DiagramThickness() { Left = 3, Top = 3 };
+        }
+        else if (vAlignment == VerticalAlignment.Top && hAlignment == HorizontalAlignment.Right)
+        {
+            annotation.Margin = new DiagramThickness() { Right = 3, Top = 3 };
+        }
+        else if (vAlignment == VerticalAlignment.Bottom && hAlignment == HorizontalAlignment.Left)
+        {
+            annotation.Margin = new DiagramThickness() { Left = 3, Bottom = 3 };
+
+        }
+        else if (vAlignment == VerticalAlignment.Bottom && hAlignment == HorizontalAlignment.Right)
+        {
+            annotation.Margin = new DiagramThickness() { Right = 3, Bottom = 3 };
+        }
+    }
+
+     private void UpdateShapeAnnotations(DiagramObjectCollection<ShapeAnnotation> annotations, bool isChecked, AnnotationConstraints constraints)
+     {
+         for (int i = 0; i < annotations.Count; i++)
+         {
+             if (isChecked)
+                 annotations[i].Constraints |= constraints | AnnotationConstraints.Select;
+             else
+             {
+                 if (constraints.HasFlag(AnnotationConstraints.Drag) || constraints.HasFlag(AnnotationConstraints.Resize) || constraints.HasFlag(AnnotationConstraints.Rotate))
+                     annotations[i].Constraints &= ~constraints;
+                 else
+                     annotations[i].Constraints &= ~(constraints | AnnotationConstraints.Select);
+                 IsAllowAll = false;
+             }
+         }
+     }
+
+     private void UpdatePathAnnotations(DiagramObjectCollection<PathAnnotation> annotations, bool isChecked, AnnotationConstraints constraints)
+     {
+         for (int i = 0; i < annotations.Count; i++)
+         {
+             if (isChecked)
+                 annotations[i].Constraints |= constraints | AnnotationConstraints.Select;
+             else
+             {
+                 if (constraints.HasFlag(AnnotationConstraints.Drag) || constraints.HasFlag(AnnotationConstraints.Resize) || constraints.HasFlag(AnnotationConstraints.Rotate))
+                     annotations[i].Constraints &= ~constraints;
+                 else
+                     annotations[i].Constraints &= ~(constraints | AnnotationConstraints.Select);
+                 IsAllowAll = false;
+             }
+         }
+     }
+
+    private void ApplyAnnotationConstraint(bool isChecked, AnnotationConstraints constraint)
+    {
+         DiagramSelectionSettings selection = Diagram!.SelectionSettings!;
+
+         if (selection!.Nodes!.Count > 0 && selection.Nodes[0].Annotations!.Count > 0)
+         {
+             UpdateShapeAnnotations(selection.Nodes[0].Annotations!, isChecked, constraint);
+         }
+         else if (selection!.Connectors!.Count > 0 && selection.Connectors[0].Annotations!.Count > 0)
+         {
+             UpdatePathAnnotations(selection!.Connectors[0].Annotations!, isChecked, constraint);
+         }
+    }
+
+
+    // Adding Hyperling at runtime
+    private ObservableCollection<NodeBase> OnSelectedNode()
+    {
+        ObservableCollection<NodeBase> NodesCollection = new ObservableCollection<NodeBase>();
+        DiagramSelectionSettings SelectedItems = Diagram!.SelectionSettings!;
+        if (SelectedItems.Nodes!.Count > 0)
+        {
+            for (int i = 0; i < SelectedItems.Nodes.Count; i++)
+            {
+                NodesCollection.Add(SelectedItems.Nodes[i] as Node);
+            }
+        }
+        else if (SelectedItems.Connectors!.Count > 0)
+        {
+            for (int i = 0; i < SelectedItems.Connectors.Count; i++)
+            {
+                NodesCollection.Add(SelectedItems.Connectors[i] as Connector);
+            }
+        }
+        return NodesCollection;
+    }
+    private async Task InsertLink()
+    {
+        await TextHyperLink!.ShowAsync();
+        ObservableCollection<NodeBase> elements = OnSelectedNode();
+        if (elements.Count == 0)
+            return;
+
+        // Default values
+        string tempLink = string.Empty;
+        string tempText = string.Empty;
+        string tempMode = "Self";
+
+        foreach (NodeBase element in elements)
+        {
+            HyperlinkSettings hyperlink = (GetHyperlink(element))!;
+            if (hyperlink != null)
+            {
+
+                if (hyperlink != null && !string.IsNullOrEmpty(hyperlink.Url))
+                {
+                    tempLink = hyperlink.Url ?? string.Empty;
+                    tempText = hyperlink.Content ?? string.Empty;
+                    tempMode = hyperlink.OpenMode == HyperlinkOpenMode.Blank
+                        ? "Blank"
+                        : "Self";
+                }
+            }
+        }
+
+        ValueLink = tempLink;
+        ValueText = tempText;
+        SelectedOpenModeOption = tempMode;
+
+    }
+    private HyperlinkSettings? GetHyperlink(NodeBase element)
+    {
+        return element switch
+        {
+            Node node when node.Annotations?.Count > 0 => node.Annotations[0].Hyperlink,
+            Connector connector when connector.Annotations?.Count > 0 => connector.Annotations[0].Hyperlink,
+            _ => null
+        };
+    }
+    private async Task ApplyAnnotationLink()
+    {
+        ObservableCollection<NodeBase> diagramElements = OnSelectedNode();
+        if (string.IsNullOrWhiteSpace(ValueLink) && string.IsNullOrWhiteSpace(ValueText))
+            return;
+        foreach (NodeBase element in diagramElements)
+        {
+            if (element is Node node && node.Annotations?.Count > 0)
+            {
+                node.Annotations[0].Hyperlink = CreateHyperlinkSettings();
+            }
+            else if (element is Connector connector && connector.Annotations?.Count > 0)
+            {
+                connector.Annotations[0].Hyperlink = CreateHyperlinkSettings();
+            }
+        }
+        await TextHyperLink!.HideAsync();
+        ValueLink = null;
+        ValueText = null;
+    }
+    private HyperlinkSettings CreateHyperlinkSettings()
+    {
+        HyperlinkSettings settings = new HyperlinkSettings
+        {
+            Url = ValueLink,
+            Content = ValueText
+        };
+        settings.OpenMode = SelectedOpenModeOption switch
+        {
+            "Self" => HyperlinkOpenMode.Self,
+            "Blank" => HyperlinkOpenMode.Blank,
+            _ => settings.OpenMode
+        };
+        return settings;
+    }
+    private string GetHyperlinkContent()
+    {
+        return !string.IsNullOrWhiteSpace(ValueText) ? ValueText : ValueLink!;
+    }
+    private async Task CancelAnnotationLink()
+    {
+        await TextHyperLink!.HideAsync();
+        ValueLink = null;
+        ValueText = null;
+    }
+    @*Hidden:Lines*@
+    public class FontFamily
+    {
+        public string? Name { get; set; }
+    }
+    private List<FontFamily> FontFamilyLists = new List<FontFamily>() {
+        new FontFamily() { Name ="Arial"},
+        new FontFamily() { Name ="Aharoni" },
+        new FontFamily() { Name ="Bell MT"},
+        new FontFamily() { Name = "Fantasy" },
+        new FontFamily() { Name ="Times New Roman" },
+        new FontFamily() { Name ="Segoe UI" },
+        new FontFamily() { Name ="Verdana" },
+    };
+    public class TextWrapping
+    {
+        public string? Name { get; set; }
+    }
+    private List<TextWrapping> TextWrappingList = new List<TextWrapping>() {
+        new TextWrapping() { Name ="NoWrap"},
+        new TextWrapping() { Name ="Wrap" },
+        new TextWrapping() { Name ="WrapWithOverflow"},
+    };
+    public class TextOverFlow
+    {
+        public string? Name { get; set; }
+    }
+    private List<TextOverFlow> TextOverFlowList = new List<TextOverFlow>() {
+        new TextOverFlow() { Name ="Ellipsis"},
+        new TextOverFlow() { Name ="Wrap" },
+        new TextOverFlow() { Name ="Clip"},
+    };
+
+
+    //Scrolling
+
+      double x = 0;
+    double y = 0;
+    double top = 30;
+    double bottom = 30;
+    double right = 30;
+    double left = 30;
+    double topScroll = 50;
+    double bottomScroll = 50;
+    double rightScroll = 50;
+    double leftScroll = 50;
+    bool clipBounds = false;
+    double PageWidth = 300;
+    double PageHeight = 300;
+     DiagramRect scrollableArea = new DiagramRect() { X = 0, Y = 0, Width = 300, Height = 300 };
+     ScrollLimitMode scrollLimit { get; set; } = ScrollLimitMode.Diagram;
+
+      private void widthvalueChanged(Syncfusion.Blazor.Inputs.ChangeEventArgs<double> args)
+    {
+        PageWidth = args.Value;
+        scrollableArea = new DiagramRect() { X = x, Y = y, Width = PageWidth, Height = PageHeight };
+    }
+    private void heightvalueChanged(Syncfusion.Blazor.Inputs.ChangeEventArgs<double> args)
+    {
+        PageHeight = args.Value;
+        scrollableArea = new DiagramRect() { X = x, Y = y, Width = PageWidth, Height = PageHeight };
+    }
+    private void xvalueChanged(Syncfusion.Blazor.Inputs.ChangeEventArgs<double> args)
+    {
+        x = args.Value;
+        scrollableArea = new DiagramRect() { X = x, Y = y, Width = PageWidth, Height = PageHeight };
+    }
+    private void yvalueChanged(Syncfusion.Blazor.Inputs.ChangeEventArgs<double> args)
+    {
+        y = args.Value;
+        scrollableArea = new DiagramRect() { X = x, Y = y, Width = PageWidth, Height = PageHeight };
+    }
+    string scrollValue = "Game3";
+    public class Games
+    {
+        public string? ID { get; set; }
+        public string? Text { get; set; }
+    }
+    List<Games> LocalData = new List<Games> {
+    new Games() { ID= "Game1", Text= "Limited" },
+    new Games() { ID= "Game2", Text= "Diagram" },
+    new Games() { ID= "Game3", Text= "Infinity" },
+
+  };
+
+    private void OnScrollLimitChange(ChangeEventArgs<string, Games> args)
+    {
+        if (args.ItemData!.Text == "Diagram")
+        {
+            scrollLimit = ScrollLimitMode.Diagram;
+            clipBounds = false;
+        }
+        if (args.ItemData.Text == "Limited")
+        {
+            scrollLimit = ScrollLimitMode.Limited;
+            clipBounds = true;
+            scrollableArea = new DiagramRect() { X = x, Y = y, Width = PageWidth, Height = PageHeight };
+        }
+        if (args.ItemData.Text == "Infinity")
+        {
+            scrollLimit = ScrollLimitMode.Infinity;
+            clipBounds = false;
+        }
+    }
+
+    // Export
+
+    private string SelectedFileFormat { get; set; } = "PNG";
+    private bool IsClipBoundsEnabled { get; set; }=false;
+    private string SelectedExportMode { get; set; } = "PageSettings";
+    private bool IsFileEnabled { get; set; } = true;
+    private string SelectedPageOption { get; set; } = "multiple";
+    private double ClipX { get; set; } = 0;
+    private double ClipY { get; set; } = 0;
+    private double ClipWidth { get; set; } = 0;
+    private double ClipHeight { get; set; } = 0;
+    private double MarginLeft { get; set; } = 0;
+    private double MarginTop { get; set; } = 0;
+    private double MarginRight { get; set; } = 0;
+    private double MarginBottom { get; set; } = 0;
+    private DiagramExportFormat ExportFormat { get; set; } = DiagramExportFormat.PNG;
+    @*End:Hidden*@
+    private double DiagramPageWidth { get; set; } = 410;
+    private double DiagramPageHeight { get; set; } = 550;
+    private bool IsMultiplePage { get; set; } = true;
+    private bool DisplayPageBreaks { get; set; } = true;
+    private DiagramPrintExportRegion PrintExportRegion { get; set; } = DiagramPrintExportRegion.PageSettings;
+    private PageOrientation orientation = PageOrientation.Portrait;
+    private void xvalueChanged(double value)
+    {
+        ClipX = value;
+    }
+    private void yvalueChanged(double value)
+    {
+        ClipY = value;
+    }
+    private void widthvalueChanged(double value)
+    {
+        ClipWidth = value;
+    }
+    private void heightvalueChanged(double value)
+    {
+        ClipHeight = value;
+    }
+    public void FileFormateChange(ChangeEventArgs<string, FileFomatItem> args)
+    {
+        ExportFormat = args.Value!.ToString() == "PNG" ? DiagramExportFormat.PNG : args.Value.ToString() == "JPEG" ? DiagramExportFormat.JPEG : args.Value.ToString() == "SVG" ? DiagramExportFormat.SVG : DiagramExportFormat.PNG;
+    }
+    public void ExportModeChange(ChangeEventArgs<string, ExportMode> args)
+    {
+        PrintExportRegion = args.Value!.ToString() == "PageSettings" ? DiagramPrintExportRegion.PageSettings : args.Value.ToString() == "Content" ? DiagramPrintExportRegion.Content : args.Value.ToString() == "ClipBounds" ? DiagramPrintExportRegion.ClipBounds : DiagramPrintExportRegion.PageSettings;
+        if (PrintExportRegion == DiagramPrintExportRegion.Content || PrintExportRegion == DiagramPrintExportRegion.PageSettings)
+        {
+            ClipWidth = 0;
+            ClipHeight = 0;
+            ClipY = 0;
+            ClipX = 0;
+        }
+        IsClipBoundsEnabled = PrintExportRegion.ToString() == "ClipBounds" ? true : false;
+
+    }
+    public void ContentChange(Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+    {
+        PrintExportRegion = DiagramPrintExportRegion.Content;
+    }
+    private void OnMultiplePage(Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+    {
+        IsMultiplePage = true;
+    }
+    private void OnSinglePage(Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+    {
+        IsMultiplePage = false;
+    }
+    public class FileFomatItem
+    {
+        public string? Name { get; set; }
+    }
+    private List<FileFomatItem> FileFomatLists = new List<FileFomatItem>() {
+        new FileFomatItem() { Name ="PNG"},
+        new FileFomatItem() { Name ="JPEG" }
+    };
+    public class ExportMode
+    {
+        public string? Name { get; set; }
+    }
+    private List<ExportMode> ExportModeLists = new List<ExportMode>() {
+        new ExportMode() { Name ="PageSettings"},
+        new ExportMode() { Name ="Content" },
+        new ExportMode() { Name ="ClipBounds"},
+
+    };
+     private async Task OnExport()
+    {
+        DiagramExportSettings print = new DiagramExportSettings();
+        print.Region = PrintExportRegion;
+        print.PageWidth = PageWidth;
+        print.PageHeight = PageHeight;
+        print.Orientation = orientation;
+        print.FitToPage = !IsMultiplePage;
+        print.Margin = new DiagramThickness() { Left = MarginLeft, Top = MarginTop, Right = MarginRight, Bottom = MarginBottom };
+        print.ClipBounds = new DiagramRect() { X = ClipX, Y = ClipY, Width = ClipWidth, Height = ClipHeight };
+        ExportFormat = SelectedFileFormat == "PNG" ? DiagramExportFormat.PNG : SelectedFileFormat == "JPEG" ? DiagramExportFormat.JPEG : SelectedFileFormat == "SVG" ? DiagramExportFormat.SVG : DiagramExportFormat.PNG;
+        
+            //To export the diagram
+            await Diagram!.ExportAsync("diagram", ExportFormat, print);
+       
+    }
+
+    // Custom keyboard commands
+    DiagramObjectCollection<KeyboardCommand> _commands = new DiagramObjectCollection<KeyboardCommand>()
+    {
+        // Built-in shortcuts (Copy, Paste, Cut, Undo, Redo, Delete, SelectAll, F2) 
+        // are supported by default. Below are custom commands:
+
+        // Ctrl+G → Group selected nodes
+        new KeyboardCommand()
+        {
+            Name = "CustomGroup",
+            Gesture = new KeyGesture()
+            {
+                Key = DiagramKeys.F,
+                Modifiers = ModifierKeys.Control
+            }
+        },
+        // Ctrl+U → Ungroup selected nodes
+        new KeyboardCommand()
+        {
+            Name = "CustomUngroup",
+            Gesture = new KeyGesture()
+            {
+                Key = DiagramKeys.J,
+                Modifiers = ModifierKeys.Control
+            }
+        }
+    };
+
+    // -------------------------------------------------------
+    // 1. Custom Command: CanExecute
+    // -------------------------------------------------------
+    private void CanExecute(CommandKeyArgs args)
+    {
+        args.CanExecute = true;
+    }
+
+    // -------------------------------------------------------
+    // 1. Custom Command: Execute
+    // -------------------------------------------------------
+    private void CommandExecute(CommandKeyArgs args)
+    {
+        // Ctrl+G → Group selected nodes
+        if (args.Gesture.Modifiers == ModifierKeys.Control &&
+            args.Gesture.Key == DiagramKeys.F)
+        {
+            Diagram.Group();
+        }
+
+        // Ctrl+U → Ungroup selected items
+        if (args.Gesture.Modifiers == ModifierKeys.Control &&
+            args.Gesture.Key == DiagramKeys.J)
+        {
+            DiagramSelectionSettings selector = Diagram.SelectionSettings;
+            if (selector.Nodes.Count > 0 && selector.Nodes[0] is NodeGroup group)
+            {
+                if (group.Children.Length > 0)
+                {
+                    Diagram.Ungroup();
+                }
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        if (DiagramNodes != null)
+        {
+            DiagramNodes.Clear();
+            DiagramNodes = null;
+        }
+        if (DiagramConnectors != null)
+        {
+            DiagramConnectors.Clear();
+            DiagramConnectors = null;
+        }
+    }
+    @*End:Hidden*@
+}
