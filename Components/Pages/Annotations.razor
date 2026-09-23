@@ -73,14 +73,6 @@ html, body {
     flex-grow: 1;
 }
 
-.property-editor .e-control,
-.property-editor .e-numerictextbox,
-.property-editor .e-dropdownlist,
-.property-editor input,
-.property-editor select {
-    width: 100% !important;
-}
-
 .section-title {
     font-size: 16px;
     font-weight: 600;
@@ -242,7 +234,7 @@ html, body {
                 <div class="property-row">
                     <div class="property-label">Font Color</div>
                     <div class="property-editor">
-                        <SfColorPicker @bind-Value="FillColor"
+                        <SfColorPicker @bind-Value="@FillColor"
                                        ValueChange="OnFillColorChange">
                         </SfColorPicker>
                     </div>
